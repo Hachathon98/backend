@@ -3,9 +3,34 @@ const Job = require('../models/Job');
 // @desc    Get all jobs
 // @route   GET /api/jobs
 // @access  Public or Protected
+// @desc    Get all jobs
+// @route   GET /api/jobs
+// @access  Public or Protected
 const getJobs = async (req, res) => {
   try {
-    const jobs = await Job.find({}).populate('postedBy', 'firstName lastName email');
+    const { keyword, location, jobType } = req.query;
+    
+    let query = {};
+    
+    // Keyword search (title or company)
+    if (keyword) {
+      query.$or = [
+        { title: { $regex: keyword, $options: 'i' } },
+        { company: { $regex: keyword, $options: 'i' } }
+      ];
+    }
+    
+    // Location filter
+    if (location) {
+      query.location = { $regex: location, $options: 'i' };
+    }
+    
+    // Job Type filter
+    if (jobType && jobType !== 'All') {
+      query.jobType = jobType;
+    }
+
+    const jobs = await Job.find(query).populate('postedBy', 'firstName lastName email').sort({ createdAt: -1 });
     res.json(jobs);
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });
