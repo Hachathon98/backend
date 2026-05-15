@@ -10,11 +10,11 @@ const {
 const { protect, isRecruiter } = require('../middleware/authMiddleware');
 
 router.route('/')
-  .get(protect, getJobs)
+  .get(getJobs)
   .post(protect, isRecruiter, createJob);
 
 router.route('/:id')
-  .get(protect, getJobById)
+  .get(getJobById)
   .put(protect, isRecruiter, updateJob)
   .delete(protect, isRecruiter, deleteJob);
 
