@@ -24,6 +24,42 @@ app.use('/api/jobs', require('./routes/jobRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/applications', require('./routes/applicationRoutes'));
 
+// Temporary Seeding Route for Production
+app.get('/api/seed', async (req, res) => {
+    try {
+        const Job = require('./models/Job');
+        const User = require('./models/User');
+        
+        // Find a recruiter
+        let recruiter = await User.findOne({ role: 'recruiter' });
+        if (!recruiter) {
+            recruiter = await User.create({
+                firstName: 'Demo', lastName: 'Recruiter', email: 'demo@placement.com', 
+                password: 'password123', role: 'recruiter'
+            });
+        }
+
+        const jobs = [
+            {
+                title: 'Banking Associate', company: 'State Bank of India',
+                description: 'Handling bank operations.', location: 'Mogaltur',
+                jobType: 'Full-time', postedBy: recruiter._id, status: 'Open'
+            },
+            {
+                title: 'Software Developer', company: 'Tech Solutions',
+                description: 'Build web apps.', location: 'Hyderabad',
+                jobType: 'Full-time', postedBy: recruiter._id, status: 'Open'
+            }
+        ];
+
+        await Job.deleteMany({});
+        await Job.insertMany(jobs);
+        res.send('Production Database Seeded Successfully!');
+    } catch (err) {
+        res.status(500).send('Seeding failed: ' + err.message);
+    }
+});
+
 app.get('/', (req, res) => {
     res.send('API is running...');
 });
